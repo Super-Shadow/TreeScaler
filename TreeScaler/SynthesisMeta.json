@@ -2,7 +2,7 @@
   "Nickname": "",
   "Visibility": "Visible",
   "OneLineDescription": "Tree Scaler",
-  "LongDescription": "Rescales all the user defined trees by a user defined amount.",
+  "LongDescription": "Rescale user selected trees by a user defined amount for each tree or random amount within a user specified range.",
   "PreferredAutoVersioning": "Default",
   "RequiredMods": [],
   "TargetedReleases": [

@@ -7,23 +7,42 @@ using Mutagen.Bethesda.WPF.Reflection.Attributes;
 
 namespace TreeScaler
 {
-	public class Settings
+	public class TreeSettings
 	{
-		[MaintainOrder]
+		[SettingName("Tree EditorID")]
+		[Tooltip("The tree to be edited")]
+		public FormLink<ITreeGetter> TreeLink;
 
 		[SettingName("Tree Scale Multiplier")]
-		[Tooltip("The number by which tree scale will be multiplied")]
-		public float TreeScaleMultiplier = 1.2f;
+		[Tooltip("The number by which the trees scale will be multiplied by. This number is the max range when using random scale")]
+		public float TreeScale;
 
-		[SettingName("Tree EditorIDs")]
-		public List<FormLink<ITreeGetter>> SelectedTrees = new()
+		[SettingName("Use Random Tree Scale")]
+		[Tooltip("Selects a random number within range to multiply a trees scale")]
+		public bool TreeRandomScale;
+
+		[SettingName("Random Tree Scale Range Min")]
+		[Tooltip("The minimum number by which the trees scale will be randomly multiplied")]
+		public float TreeScaleMin;
+
+		public TreeSettings(FormLink<ITreeGetter> treeLink, float treeScale, bool treeRandomScale, float treeScaleMin)
 		{
-			Skyrim.Tree.TreePineForest01,
-			Skyrim.Tree.TreePineForest02,
-			Skyrim.Tree.TreePineForest03,
-			Skyrim.Tree.TreePineForest04,
-			Skyrim.Tree.TreePineForest05,
-
+			TreeLink = treeLink;
+			TreeScale = treeScale;
+			TreeRandomScale = treeRandomScale;
+			TreeScaleMin = treeScaleMin;
+		}
+	}
+	public class Settings
+	{
+		[SettingName("Tree Scales")]
+		public List<TreeSettings> SelectedTrees = new()
+		{
+			new TreeSettings(Skyrim.Tree.TreePineForest01, 1.2f, false, 1.0f),
+			new TreeSettings(Skyrim.Tree.TreePineForest02, 1.2f, false, 1.0f),
+			new TreeSettings(Skyrim.Tree.TreePineForest03, 1.2f, false, 1.0f),
+			new TreeSettings(Skyrim.Tree.TreePineForest04, 1.2f, false, 1.0f),
+			new TreeSettings(Skyrim.Tree.TreePineForest05, 1.2f, false, 1.0f),
 		};
 	}
 
@@ -43,6 +62,8 @@ namespace TreeScaler
 
 		public static void RunPatch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state)
 		{
+			var rnd = new Random();
+
 			// This code was adapted from https://github.com/Bl4ckread/PineTreeScaler
 			foreach (var placedObjectGetter in state.LoadOrder.PriorityOrder.PlacedObject()
 						.WinningContextOverrides(state.LinkCache))
@@ -55,13 +76,16 @@ namespace TreeScaler
 				if (placedObjectBase?.FormKey == null) 
 					continue;
 
-				foreach (var formLink in Settings.SelectedTrees)
+				foreach (var treeSettings in Settings.SelectedTrees)
 				{
-					if (formLink.FormKey != placedObjectBase.FormKey) 
+					if (treeSettings.TreeLink.FormKey != placedObjectBase.FormKey)
 						continue;
 
 					var modifiedObject = placedObjectGetter.GetOrAddAsOverride(state.PatchMod);
-					modifiedObject.Scale *= Settings.TreeScaleMultiplier;
+					if (!treeSettings.TreeRandomScale)
+						modifiedObject.Scale *= treeSettings.TreeScale;
+					else
+						modifiedObject.Scale *= Convert.ToSingle(rnd.NextDouble() * (treeSettings.TreeScale - treeSettings.TreeScaleMin) - treeSettings.TreeScaleMin);
 				}
 			}
 		}
