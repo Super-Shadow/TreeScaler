@@ -85,7 +85,7 @@ namespace TreeScaler
 					if (!treeSettings.TreeRandomScale)
 						modifiedObject.Scale *= treeSettings.TreeScale;
 					else
-						modifiedObject.Scale *= Convert.ToSingle(rnd.NextDouble() * (treeSettings.TreeScale - treeSettings.TreeScaleMin) - treeSettings.TreeScaleMin);
+						modifiedObject.Scale *= Convert.ToSingle(rnd.NextDouble() * (treeSettings.TreeScale - treeSettings.TreeScaleMin) + treeSettings.TreeScaleMin);
 				}
 			}
 		}
